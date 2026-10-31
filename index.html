@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>LOPsar Hub</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Mismo lenguaje visual que Inventario de Rodaje y Guionista: fondo pizarra, ámbar, rótulos mono. */
+:root{--bg:#0f172a;--panel:#1e293b;--panel2:#273449;--line:#334155;--fg:#e2e8f0;--mut:#94a3b8;--amber:#f59e0b;--amber2:#fbbf24;--ok:#10b981;--bad:#f87171;
+ --display:'Barlow Condensed','Arial Narrow',sans-serif;--body:'IBM Plex Sans',system-ui,sans-serif;--mono:'IBM Plex Mono',ui-monospace,monospace;color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.5 var(--body);min-height:100vh;padding-block:0;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+button,input{font:inherit;color:inherit}
+.btn{background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:8px 14px;min-height:42px;display:inline-flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;text-decoration:none;color:var(--fg);touch-action:manipulation}
+.btn:hover{border-color:var(--amber)}
+.btn.pri{background:var(--amber);color:#1a1205;border-color:var(--amber);font-weight:600}.btn.pri:hover{background:var(--amber2)}
+.btn.sm{min-height:34px;padding:4px 10px;font-size:13px}
+.btn[disabled]{opacity:.5;cursor:default}
+:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
+input{background:#0b1222;border:1px solid var(--line);border-radius:6px;padding:9px 11px;min-height:44px;width:100%}
+input:focus{border-color:var(--amber);outline:none}
+h1,h2,h3{font-family:var(--display);text-transform:uppercase;letter-spacing:.02em;margin:0;font-weight:600}
+.lbl{font:500 11px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
+header{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding-block:12px;border-bottom:1px solid var(--line);margin-inline:calc(-1*max(16px,env(safe-area-inset-left,0px)));padding-inline:max(16px,env(safe-area-inset-left,0px))}
+.logo{font:700 24px var(--display);letter-spacing:.06em;text-transform:uppercase;display:flex;align-items:center;gap:9px}
+.logo i{width:10px;height:24px;background:var(--amber);display:inline-block;transform:skewX(-14deg)}
+.sp{flex:1}
+.pill{font:500 11px var(--mono);border:1px solid var(--line);border-radius:99px;padding:2px 9px;color:var(--mut)}
+.pill.pro{border-color:var(--amber);color:var(--amber)}.pill.ok{border-color:var(--ok);color:var(--ok)}
+main{max-width:1000px;margin:0 auto;padding-block:30px 60px}
+.auth{max-width:430px;margin:8vh auto 0;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:28px;display:flex;flex-direction:column;gap:13px}
+.auth h1{font-size:40px;line-height:1}
+.gbtn{background:#fff;color:#1f2937;border-color:#fff;font-weight:600}.gbtn:hover{background:#f1f5f9;border-color:#f1f5f9}
+.or{display:flex;align-items:center;gap:10px;color:var(--mut);font-size:12px}.or:before,.or:after{content:"";flex:1;border-top:1px solid var(--line)}
+.msg{font-size:13px;min-height:18px;color:var(--bad)}.msg.ok{color:var(--ok)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:16px;margin-top:18px}
+.app{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:18px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.app:hover{border-color:var(--amber)}
+.app .top{display:flex;align-items:center;gap:12px}
+.app .ic{font:600 14px var(--mono);color:#1a1205;background:var(--amber);border-radius:5px;padding:10px 8px;min-width:52px;text-align:center}
+.app.soon .ic,.app.lock .ic{background:var(--panel2);color:var(--mut)}
+.app h3{font-size:25px;overflow-wrap:anywhere}
+.app p{margin:0;color:var(--mut);font-size:14px;flex:1}
+.note{color:var(--mut);font-size:13px}
+.ov{position:fixed;inset:0;background:rgba(2,6,23,.7);display:flex;align-items:flex-start;justify-content:center;padding:12vh 16px;z-index:20}
+.md{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:22px;width:min(480px,100%);display:flex;flex-direction:column;gap:12px}
+.spin{padding:60px 0;text-align:center;color:var(--mut)}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div id="root"><div class="spin">Cargando…</div></div>
+<script type="module">
+/* ============ CONFIGURACIÓN (lo único que normalmente editas) ============ */
+const FIREBASE = {
+  apiKey: "AIzaSyArE42nx13HuxiIbBYJRf-Mwu_8jxnlnl4",
+  authDomain: "inventario-tai.firebaseapp.com",
+  projectId: "inventario-tai",
+  storageBucket: "inventario-tai.firebasestorage.app",
+  messagingSenderId: "304149994706",
+  appId: "1:304149994706:web:85e6535d499cf1c038e10b"
+};
+/* Lista de aplicaciones: para agregar una, copia una línea.  plan: "free" = todos · "pro" = solo plan Pro · "soon" = próximamente */
+const APPS = [
+  { id: "gear",      code: "GEAR", name: "LOPsar Gear",       desc: "Inventario de equipos, proyectos, préstamos y kits de tu productora.", url: "https://lopsar.github.io/LOPsar-Gear/", plan: "free" },
+  { id: "luminaria", code: "LUZ",  name: "LOPsar Luminaria X", desc: "Diseña la iluminación de tu set con cámaras, luces y objetos en 3D.", url: "https://lopsar.github.io/LOPsar-Luminaria-X/", plan: "free" },
+  { id: "script",    code: "GUI",  name: "Guionista",          desc: "Escribe guiones y organiza el desglose, el plan de rodaje y el presupuesto.", url: "https://lopsar.github.io/LOPsar-Script/", plan: "free" }
+];
+/* false = el Hub abre directo y el inicio de sesión es opcional (úsalo mientras configuras Firebase).
+   true  = sin iniciar sesión no se ve nada. Actívalo cuando Google ya esté habilitado en Firebase. */
+const REQUIRE_LOGIN = false;
+const PROFILES = "hub_profiles";       // colección con el plan de cada usuario: hub_profiles/{uid} → { plan: "free" | "pro" }
+const CONTACT = "";                     // correo o enlace para pedir el plan Pro (opcional)
+/* ======================================================================== */
+
+const $ = (s, r = document) => r.querySelector(s);
+const h = (tag, a = {}, ...c) => { const e = document.createElement(tag); for (const k in a) { const v = a[k]; if (v == null || v === false) continue; if (k === 'class') e.className = v; else if (k === 'text') e.textContent = v; else if (k.startsWith('on')) e.addEventListener(k.slice(2), v); else e.setAttribute(k, v === true ? '' : v); } for (const x of c.flat()) if (x != null && x !== false) e.append(x.nodeType ? x : document.createTextNode(x)); return e; };
+const root = $('#root');
+const params = new URLSearchParams(location.search);
+const NEXT = (() => { const n = params.get('next'); if (!n) return ''; try { const u = new URL(n, location.href); return u.origin === location.origin ? u.href : ''; } catch (e) { return ''; } })();
+const msgOf = (e) => ({
+  'auth/invalid-email': 'El correo no es válido.', 'auth/missing-password': 'Escribe tu contraseña.', 'auth/weak-password': 'La contraseña debe tener al menos 6 caracteres.',
+  'auth/email-already-in-use': 'Ese correo ya tiene cuenta. Usa «Iniciar sesión».', 'auth/invalid-credential': 'Correo o contraseña incorrectos.', 'auth/wrong-password': 'Correo o contraseña incorrectos.',
+  'auth/user-not-found': 'Correo o contraseña incorrectos.', 'auth/too-many-requests': 'Demasiados intentos. Espera unos minutos.', 'auth/network-request-failed': 'Sin conexión. Revisa tu internet.',
+  'auth/operation-not-allowed': 'Ese método de acceso no está activado en Firebase (Authentication → Método de acceso).',
+  'auth/unauthorized-domain': 'Este dominio no está autorizado en Firebase (Authentication → Configuración → Dominios autorizados).',
+  'auth/popup-blocked': 'El navegador bloqueó la ventana de Google. Permite las ventanas emergentes.', 'auth/popup-closed-by-user': '', 'auth/cancelled-popup-request': '',
+  'auth/account-exists-with-different-credential': 'Ese correo ya existe con otro método. Entra con tu correo y contraseña.'
+}[(e && e.code) || ''] ?? ('No se pudo completar' + (e && e.code ? ' (' + e.code + ')' : '') + '.'));
+
+let FB = null;
+try {
+  const [appM, authM, fsM] = await Promise.all([
+    import("https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js"),
+    import("https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js"),
+    import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js")
+  ]);
+  const app = appM.initializeApp(FIREBASE), auth = authM.getAuth(app), db = fsM.getFirestore(app);
+  FB = {
+    onAuth: (cb) => authM.onAuthStateChanged(auth, cb),
+    signIn: (e, p) => authM.signInWithEmailAndPassword(auth, e, p),
+    signUp: (e, p) => authM.createUserWithEmailAndPassword(auth, e, p),
+    reset: (e) => authM.sendPasswordResetEmail(auth, e),
+    signOut: () => authM.signOut(auth),
+    google: async () => {
+      const p = new authM.GoogleAuthProvider(); p.setCustomParameters({ prompt: 'select_account' });
+      try { await authM.signInWithPopup(auth, p); }
+      catch (e) { if (e && (e.code === 'auth/popup-blocked' || e.code === 'auth/operation-not-supported-in-this-environment')) { await authM.signInWithRedirect(auth, p); return; } throw e; }
+    },
+    plan: async (uid) => { try { const s = await fsM.getDoc(fsM.doc(db, PROFILES, uid)); return s.exists() && s.data().plan === 'pro' ? 'pro' : 'free'; } catch (e) { return 'free'; } }
+  };
+} catch (e) { /* se muestra el aviso abajo */ }
+
+/* ---------- Pantalla de acceso ---------- */
+function showAuth(note, canSkip) {
+  let mode = 'in';
+  const msg = h('div', { class: 'msg', role: 'alert', text: note || '' });
+  const em = h('input', { type: 'email', id: 'em', placeholder: 'correo@ejemplo.com', autocomplete: 'email', 'aria-label': 'Correo' });
+  const pw = h('input', { type: 'password', id: 'pw', placeholder: 'Contraseña', autocomplete: 'current-password', 'aria-label': 'Contraseña' });
+  const go = h('button', { class: 'btn pri', text: 'Iniciar sesión' }), sw = h('button', { class: 'btn sm', text: 'Crear cuenta nueva', type: 'button' }), rs = h('button', { class: 'btn sm', text: 'Olvidé mi contraseña', type: 'button' });
+  const setMode = (m) => { mode = m; go.textContent = m === 'in' ? 'Iniciar sesión' : 'Crear cuenta'; sw.textContent = m === 'in' ? 'Crear cuenta nueva' : 'Ya tengo cuenta'; pw.autocomplete = m === 'in' ? 'current-password' : 'new-password'; msg.textContent = ''; };
+  const say = (t, ok) => { msg.className = 'msg' + (ok ? ' ok' : ''); msg.textContent = t; };
+  sw.onclick = () => setMode(mode === 'in' ? 'up' : 'in');
+  const busy = (b) => [go, g, sw, rs].forEach(x => x.disabled = b);
+  go.onclick = async () => { if (!FB) return say('Firebase no está disponible.'); busy(true); say(''); try { mode === 'in' ? await FB.signIn(em.value.trim(), pw.value) : await FB.signUp(em.value.trim(), pw.value); } catch (e) { say(msgOf(e)); busy(false); } };
+  rs.onclick = async () => { if (!FB || !em.value.trim()) return say('Escribe tu correo arriba.'); try { await FB.reset(em.value.trim()); say('Te enviamos un correo para restablecer la contraseña.', true); } catch (e) { say(msgOf(e)); } };
+  pw.addEventListener('keydown', (e) => { if (e.key === 'Enter') go.click(); });
+  const g = h('button', { class: 'btn gbtn', type: 'button', onclick: async () => { if (!FB) return say('Firebase no está disponible.'); busy(true); say(''); try { await FB.google(); } catch (e) { say(msgOf(e)); busy(false); } } },
+    h('span', { 'aria-hidden': 'true' }), 'Continuar con Google');
+  g.firstChild.innerHTML = '<svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.9 6.1C12.4 13.6 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4.1 7.1-10.1 7.1-17.5z"/><path fill="#FBBC05" d="M10.5 28.7c-.5-1.5-.8-3-.8-4.7s.3-3.2.8-4.7l-7.9-6.1C.9 16.4 0 20.1 0 24s.9 7.6 2.6 10.8l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.5-5.8c-2.1 1.4-4.8 2.3-8.4 2.3-6.3 0-11.6-4.1-13.5-9.8l-7.9 6.1C6.5 42.6 14.6 48 24 48z"/></svg>';
+  root.textContent = '';
+  root.append(h('div', { class: 'auth' }, h('div', { class: 'logo' }, h('i'), 'LOPsar Hub'), h('h1', { text: 'Tu estudio, en un solo lugar' }),
+    h('div', { class: 'note', text: 'Inicia sesión una vez y entra a todas tus aplicaciones con la misma cuenta.' }),
+    g, h('div', { class: 'or', text: 'o con correo' }), em, pw, msg, go, h('div', { style: 'display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap' }, sw, rs), canSkip ? h('button', { class: 'btn sm', type: 'button', text: '‹ Volver al Hub', onclick: () => showHome(null) }) : null));
+}
+
+/* ---------- Panel de aplicaciones ---------- */
+async function showHome(user) {
+  const apps = APPS, plan = user && FB ? await FB.plan(user.uid) : 'free';
+  const head = h('header', {}, h('div', { class: 'logo' }, h('i'), 'LOPsar Hub'), h('span', { class: 'sp' }),
+    ...(user ? [h('span', { class: 'pill' + (plan === 'pro' ? ' pro' : ''), text: 'Plan ' + (plan === 'pro' ? 'Pro' : 'Gratis') }), h('span', { class: 'note', style: 'max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap', text: user.email || user.displayName || '' }), h('button', { class: 'btn sm', text: 'Salir', onclick: () => FB.signOut() })]
+      : [h('button', { class: 'btn sm', text: 'Iniciar sesión', onclick: () => showAuth('', true) })]));
+  const grid = h('div', { class: 'grid' });
+  for (const a of apps) {
+    const soon = a.plan === 'soon', lock = a.plan === 'pro' && plan !== 'pro';
+    const act = soon ? h('span', { class: 'pill', text: 'Próximamente' })
+      : lock ? h('button', { class: 'btn sm', text: 'Requiere plan Pro', onclick: () => proModal(a) })
+      : h('a', { class: 'btn pri', href: a.url, text: 'Abrir' });
+    grid.append(h('article', { class: 'app' + (soon ? ' soon' : '') + (lock ? ' lock' : '') },
+      h('div', { class: 'top' }, h('div', { class: 'ic', text: a.code || (a.name || '?').slice(0, 3).toUpperCase() }), h('h3', { text: a.name })),
+      h('p', { text: a.desc || '' }), h('div', {}, act, a.plan === 'pro' && !soon ? h('span', { class: 'pill pro', style: 'margin-left:8px', text: 'Pro' }) : null)));
+  }
+  root.textContent = ''; root.append(head, h('main', {}, h('div', { class: 'lbl', text: 'Tus aplicaciones' }), h('h1', { text: 'Elige con qué trabajar', style: 'font-size:40px;margin-top:4px' }), grid,
+    h('p', { class: 'note', style: 'margin-top:28px', text: user ? 'Sesión iniciada: tus datos se guardan en tu cuenta y se sincronizan entre dispositivos.' : 'Cada aplicación guarda tus datos en tu cuenta. Inicia sesión para sincronizarlos entre dispositivos.' })));
+}
+function proModal(a) {
+  const ov = h('div', { class: 'ov', onclick: (e) => { if (e.target === ov) ov.remove(); } }, h('div', { class: 'md' }, h('h2', { text: a.name }), h('p', { text: 'Esta aplicación está incluida en el plan Pro. Los pagos en línea se activarán pronto.' }),
+    CONTACT ? h('p', { class: 'note', text: 'Mientras tanto, escríbenos: ' + CONTACT }) : null, h('button', { class: 'btn pri', text: 'Entendido', onclick: () => ov.remove() })));
+  document.body.append(ov);
+}
+
+/* ---------- Arranque ---------- */
+if (!FB) { if (REQUIRE_LOGIN) showAuth('No se pudo cargar Firebase (¿sin internet?). Recarga la página.'); else showHome(null); }
+else FB.onAuth((u) => {
+  if (u) { if (NEXT) { location.replace(NEXT); return; } showHome(u); }
+  else if (REQUIRE_LOGIN) showAuth();
+  else showHome(null);
+});
+</script>
+</body>
+</html>
